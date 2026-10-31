@@ -291,6 +291,7 @@ in
     gsettings-desktop-schemas # org.gnome.desktop.* schemas (GTK dark mode, icon theme)
     pulseaudio # pactl
     libnotify # notify-send
+    libsecret # secret-tool: apps (e.g. Claude Desktop's Chrome import) read the keyring through it
 
     # Applications
     google-chrome
