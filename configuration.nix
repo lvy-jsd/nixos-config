@@ -167,6 +167,16 @@ in
       nerd-fonts.jetbrains-mono # kitty font_family and the starship prompt glyphs
       twemoji-color-font
     ];
+
+    # Without these, Han glyphs fall back to the KR/HK variants of Noto CJK.
+    fontconfig.defaultFonts = {
+      sansSerif = [ "Noto Sans CJK SC" ];
+      serif = [ "Noto Serif CJK SC" ];
+      monospace = [
+        "JetBrainsMono Nerd Font"
+        "Noto Sans Mono CJK SC"
+      ];
+    };
   };
 
   environment.sessionVariables = {
@@ -190,7 +200,10 @@ in
     bluetooth.enable = true;
   };
 
-  security.polkit.enable = true;
+  security = {
+    polkit.enable = true;
+    rtkit.enable = true; # realtime priority for PipeWire (silences the RTKit errors)
+  };
 
   services = {
     # Login screen: SDDM on Wayland with the Catppuccin theme (package: catppuccin-sddm).
@@ -262,6 +275,7 @@ in
       accent = "mauve";
     })
     catppuccin-cursors.frappeMauve # cursor theme for niri, SDDM and the lock screen
+    adwaita-icon-theme # GTK icon-theme is Adwaita (see gsettings); Noctalia also looks up icons here
 
     # Wayland helpers
     wl-clipboard
