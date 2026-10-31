@@ -256,6 +256,7 @@ in
     vim
     wget
     git
+    gh # GitHub CLI; also the git credential helper for https pushes (gh auth setup-git)
     btop
     ripgrep
     fd
