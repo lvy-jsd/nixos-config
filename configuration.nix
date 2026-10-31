@@ -267,6 +267,8 @@ in
     jq
     yt-dlp
     ffmpeg
+    rustup
+    gcc
 
     # Desktop shell and theming
     noctalia
