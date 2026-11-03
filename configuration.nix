@@ -16,7 +16,7 @@
 let
   user = "ilo";
   flakeDir = "/home/${user}/nixos-config";
-  locale = "zh_CN.UTF-8";
+  locale = "en_US.UTF-8";
 
   # One cursor theme shared by niri, SDDM and the shell/lock-screen processes.
   cursor = {
