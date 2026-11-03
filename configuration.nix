@@ -305,6 +305,7 @@ in
     telegram-desktop
     bilibili
     (pkgs.callPackage ./pkgs/novel-studio { }) # 小说工坊: offline fiction writing desk (see pkgs/novel-studio)
+    (pkgs.callPackage ./pkgs/authorwrite { }) # 阅文作家助手: Yuewen's official web-novel client (see pkgs/authorwrite)
     inputs.claude-desktop.packages.x86_64-linux.default
     inputs.codex-desktop-linux.packages.x86_64-linux.codex-desktop
   ];
