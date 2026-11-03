@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'none'"
+    />
+    <title>Novel Studio</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <!-- ---------------------------------------------------------- sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="brand">
+          <button class="brand-book" id="btnLibrary" title="打开书库">
+            <span class="brand-title" id="bookTitle">未打开作品</span>
+            <span class="brand-sub" id="bookAuthor">点击选择或新建作品</span>
+          </button>
+          <button class="icon-btn" id="btnNewBook" title="新建作品">＋</button>
+        </div>
+
+        <div class="chapter-head">
+          <span>目录</span>
+          <button class="mini-btn" id="btnNewChapter" title="新建章节（Ctrl+N）">新章节</button>
+        </div>
+        <div class="chapter-list" id="chapterList"></div>
+
+        <div class="sidebar-foot">
+          <div class="stat-row">
+            <span>全书</span><b id="statWords">0 字</b>
+          </div>
+          <div class="stat-row">
+            <span>今日</span><b id="statToday">0 字</b>
+          </div>
+          <div class="stat-row">
+            <span>章节</span><b id="statChapters">0</b>
+          </div>
+          <div class="foot-actions">
+            <button class="mini-btn" id="btnSettings">设置</button>
+            <button class="mini-btn" id="btnReveal">文件夹</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ----------------------------------------------------------- editor -->
+      <main class="editor" id="editorPane">
+        <div class="toolbar">
+          <input class="chapter-title" id="chapterTitle" placeholder="章节标题" spellcheck="false" />
+          <div class="toolbar-right">
+            <span class="count" id="chapterCount">0 字</span>
+            <input class="target-input" id="chapterTarget" type="number" min="0" step="500" placeholder="目标" title="本章目标字数" />
+            <button class="mini-btn" id="btnFocus" title="专注模式（Ctrl+Shift+F）">专注</button>
+            <button class="mini-btn" id="btnExport">导出</button>
+            <button class="mini-btn accent" id="btnInspector" title="Ctrl+J">AI</button>
+          </div>
+        </div>
+        <div class="paper">
+          <textarea
+            id="editor"
+            class="editor-input"
+            spellcheck="false"
+            placeholder="在这里写正文…  Ctrl+S 保存  Ctrl+J 打开 AI 助手"
+          ></textarea>
+        </div>
+        <div class="statusbar">
+          <span id="saveState">就绪</span>
+          <span class="spacer"></span>
+          <span id="caretInfo"></span>
+        </div>
+      </main>
+
+      <!-- -------------------------------------------------------- inspector -->
+      <aside class="inspector" id="inspector">
+        <div class="tabs">
+          <button class="tab active" data-tab="ai">AI 助手</button>
+          <button class="tab" data-tab="cast">人物</button>
+          <button class="tab" data-tab="world">设定</button>
+          <button class="tab" data-tab="outline">大纲</button>
+          <button class="icon-btn tab-close" id="btnCloseInspector" title="收起">×</button>
+        </div>
+
+        <section class="pane active" data-pane="ai">
+          <div class="chips" id="aiChips">
+            <button class="chip" data-action="continue">接着写</button>
+            <button class="chip" data-action="polish">润色</button>
+            <button class="chip" data-action="expand">扩写</button>
+            <button class="chip" data-action="condense">精简</button>
+            <button class="chip" data-action="outline">本章大纲</button>
+            <button class="chip" data-action="name">起名</button>
+            <button class="chip" data-action="critique">点评</button>
+          </div>
+          <textarea id="aiPrompt" class="ai-prompt" placeholder="补充要求（可留空）… 例如：语气更克制，多用短句"></textarea>
+          <div class="ai-actions">
+            <button class="mini-btn accent" id="btnAiRun">生成</button>
+            <button class="mini-btn" id="btnAiStop" disabled>停止</button>
+            <span class="ai-model" id="aiModelLabel">未配置模型</span>
+          </div>
+          <div class="ai-output" id="aiOutput"></div>
+          <div class="ai-foot">
+            <button class="mini-btn" id="btnAiInsert">插入到光标</button>
+            <button class="mini-btn" id="btnAiReplace">替换选中</button>
+            <button class="mini-btn" id="btnAiCopy">复制</button>
+          </div>
+        </section>
+
+        <section class="pane" data-pane="cast">
+          <div class="pane-head">
+            <h3>人物</h3>
+            <button class="mini-btn" id="btnAddCast">添加</button>
+          </div>
+          <div class="card-list" id="castList"></div>
+        </section>
+
+        <section class="pane" data-pane="world">
+          <div class="pane-head">
+            <h3>世界观 / 设定</h3>
+            <button class="mini-btn" id="btnAddWorld">添加</button>
+          </div>
+          <div class="card-list" id="worldList"></div>
+        </section>
+
+        <section class="pane" data-pane="outline">
+          <div class="pane-head"><h3>大纲与梗概</h3></div>
+          <input class="field" id="synopsis" placeholder="一句话梗概" spellcheck="false" />
+          <textarea class="outline-area" id="outline" placeholder="分卷、主线、伏笔…&#10;（这些内容会作为 AI 的长期上下文）"></textarea>
+        </section>
+      </aside>
+    </div>
+
+    <!-- ------------------------------------------------------------- modals -->
+    <div class="overlay" id="libraryOverlay" hidden>
+      <div class="modal wide">
+        <header>
+          <h2>书库</h2>
+          <button class="icon-btn" data-close="libraryOverlay">×</button>
+        </header>
+        <div class="book-grid" id="bookGrid"></div>
+        <footer>
+          <span class="hint" id="libraryRootHint"></span>
+          <button class="mini-btn accent" id="btnNewBook2">新建作品</button>
+        </footer>
+      </div>
+    </div>
+
+    <div class="overlay" id="newBookOverlay" hidden>
+      <div class="modal">
+        <header>
+          <h2>新建作品</h2>
+          <button class="icon-btn" data-close="newBookOverlay">×</button>
+        </header>
+        <label class="row"><span>书名</span><input id="newTitle" placeholder="例如：长夜将明" /></label>
+        <label class="row"><span>作者</span><input id="newAuthor" placeholder="笔名（可留空）" /></label>
+        <footer>
+          <button class="mini-btn" data-close="newBookOverlay">取消</button>
+          <button class="mini-btn accent" id="btnCreateBook">创建</button>
+        </footer>
+      </div>
+    </div>
+
+    <div class="overlay" id="settingsOverlay" hidden>
+      <div class="modal wide">
+        <header>
+          <h2>设置</h2>
+          <button class="icon-btn" data-close="settingsOverlay">×</button>
+        </header>
+        <div class="settings-body">
+          <h3>写作</h3>
+          <label class="row"><span>书库目录</span><input id="cfgRoot" /></label>
+          <label class="row"><span>正文字号</span><input id="cfgFontSize" type="number" min="12" max="32" /></label>
+
+          <h3>AI 推理服务</h3>
+          <label class="row">
+            <span>协议</span>
+            <select id="cfgProtocol">
+              <option value="openai">OpenAI 兼容（vLLM / LM Studio / llama.cpp / DeepSeek…）</option>
+              <option value="ollama">Ollama</option>
+            </select>
+          </label>
+          <label class="row"><span>地址</span><input id="cfgBaseUrl" placeholder="http://192.168.1.10:8000/v1" /></label>
+          <label class="row"><span>API Key</span><input id="cfgApiKey" type="password" placeholder="没有就留空" /></label>
+          <label class="row"><span>模型</span><input id="cfgModel" list="modelOptions" placeholder="例如 qwen2.5-14b-instruct" /><datalist id="modelOptions"></datalist></label>
+          <label class="row"><span>温度</span><input id="cfgTemp" type="number" min="0" max="2" step="0.1" /></label>
+          <label class="row"><span>上下文</span><input id="cfgContext" type="number" min="200" max="20000" step="100" /><em>取正文尾部多少字喂给 AI</em></label>
+          <div class="row">
+            <span></span>
+            <div class="btn-row">
+              <button class="mini-btn" id="btnListModels">测试连接 / 拉模型列表</button>
+              <span class="hint" id="aiTestResult"></span>
+            </div>
+          </div>
+        </div>
+        <footer>
+          <button class="mini-btn" data-close="settingsOverlay">取消</button>
+          <button class="mini-btn accent" id="btnSaveSettings">保存</button>
+        </footer>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" hidden></div>
+
+    <script src="store.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

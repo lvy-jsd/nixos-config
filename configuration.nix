@@ -304,6 +304,7 @@ in
     qq
     telegram-desktop
     bilibili
+    (pkgs.callPackage ./pkgs/novel-studio { }) # 小说工坊: offline fiction writing desk (see pkgs/novel-studio)
     inputs.claude-desktop.packages.x86_64-linux.default
     inputs.codex-desktop-linux.packages.x86_64-linux.codex-desktop
   ];

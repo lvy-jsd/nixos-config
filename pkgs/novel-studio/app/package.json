@@ -1,0 +1,9 @@
+{
+  "name": "novel-studio",
+  "productName": "Novel Studio",
+  "version": "0.1.0",
+  "description": "Offline novel writing studio with a pluggable AI assistant",
+  "main": "main.js",
+  "private": true,
+  "author": "ilo"
+}

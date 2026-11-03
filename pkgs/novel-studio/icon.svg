@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#414559"/>
+      <stop offset="1" stop-color="#292c3c"/>
+    </linearGradient>
+    <linearGradient id="quill" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#ca9ee6"/>
+      <stop offset="1" stop-color="#babbf1"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="#303446"/>
+
+  <path d="M56 62c0-7 6-13 13-13h56v152H69c-7 0-13-6-13-13V62z" fill="url(#page)"/>
+  <path d="M200 62c0-7-6-13-13-13h-56v152h56c7 0 13-6 13-13V62z" fill="#303446"/>
+  <path d="M125 49v152" stroke="#f4b8e4" stroke-width="5" stroke-linecap="round" opacity="0.55"/>
+
+  <g stroke="#737994" stroke-width="5" stroke-linecap="round" opacity="0.85">
+    <path d="M76 84h34"/>
+    <path d="M76 105h34"/>
+    <path d="M76 126h26"/>
+    <path d="M76 147h30"/>
+  </g>
+
+  <path d="M198 58c-30 4-52 24-60 54 14-4 22-2 30-8 12-9 24-26 30-46z" fill="url(#quill)"/>
+  <path d="M138 112c-6 10-9 22-9 34 0 8 2 14 5 18" stroke="#e5c890" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="134" cy="168" r="7" fill="#e5c890"/>
+</svg>
