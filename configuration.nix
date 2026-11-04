@@ -109,29 +109,36 @@ in
   # ---------------------------------------------------------------------------
   # niri config
   #
-  # The real file lives in this repo as niri/config.kdl; ~/.config/niri/config.kdl
-  # is a symlink to it. Deliberately NOT home-manager / xdg.configFile, because
-  # that would make the file a read-only /nix/store symlink -- niri tweaks would
-  # then need a commit + nixos-rebuild every time. This way the file stays
-  # writable (niri reloads on save) while still being versioned by git.
+  # The real directory lives in this repo as niri/; ~/.config/niri is a symlink
+  # to it. Deliberately NOT home-manager / xdg.configFile, because that would
+  # make config.kdl a read-only /nix/store symlink -- every niri tweak would
+  # then need a commit plus a nixos-rebuild. This keeps the file writable
+  # (niri reloads on save) while still being versioned by git.
+  #
+  # Why a *directory* symlink and not a file symlink: editors save atomically
+  # (write temp file, then rename over the target). Doing that to a symlinked
+  # file silently replaces the symlink with a plain file, detaching it from git
+  # without any error. With the directory symlinked, config.kdl is a real file
+  # inside the repo and atomic saves work normally.
   #
   # This activation script recreates the symlink on a fresh clone or if it gets
-  # lost. An existing regular file is never overwritten.
+  # lost. An existing real directory is never overwritten.
   # ---------------------------------------------------------------------------
   system.activationScripts.niriConfig = {
     deps = [ "users" ];
     text = ''
-      cfgDir=/home/${user}/.config/niri
-      src=${flakeDir}/niri/config.kdl
-      link=$cfgDir/config.kdl
+      cfgPath=/home/${user}/.config/niri
+      src=${flakeDir}/niri
 
-      install -d -o ${user} -g users -m 755 "$cfgDir"
-
-      if [ -L "$link" ] || [ ! -e "$link" ]; then
-        ln -sfn "$src" "$link"
-        chown -h ${user}:users "$link" 2>/dev/null || true
+      if [ -e "$src/config.kdl" ]; then
+        if [ -L "$cfgPath" ] || [ ! -e "$cfgPath" ]; then
+          ln -sfn "$src" "$cfgPath"
+          chown -h ${user}:users "$cfgPath" 2>/dev/null || true
+        else
+          echo "niriConfig: $cfgPath is a real directory, leaving it untouched" >&2
+        fi
       else
-        echo "niriConfig: $link is a regular file, leaving it untouched" >&2
+        echo "niriConfig: $src/config.kdl is missing, skipping symlink" >&2
       fi
     '';
   };

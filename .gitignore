@@ -1,2 +1,7 @@
 result
 result-*
+
+# Manual config snapshots (cp). Git history already covers every version, these
+# are just quick local rollback points and do not belong in the repo.
+niri/*.bak-*
+niri/*.bak
