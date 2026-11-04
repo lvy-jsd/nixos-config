@@ -282,26 +282,39 @@ in
     };
     starship.enable = true; # prompt config: ~/.config/starship.toml
     fish.enable = true; # only used by kitty (kitty.conf `shell`); the login shell stays bash
-
-    # Steam (native nixpkgs build, not Flatpak).
-    #
-    # Turning this on pulls in everything Steam needs on NixOS:
-    #   * hardware.graphics.enable32Bit -- 32-bit GL/Vulkan drivers for Proton
-    #   * hardware.steam-hardware       -- udev rules so gamepads and the Steam
-    #                                     Controller show up without manual chmod
-    #   * 32-bit PipeWire/PulseAudio    -- audio inside games
-    # The desktop entry lands in environment.systemPackages automatically.
-    steam.enable = true;
-
-    # niri runs under Wayland, where Steam Input cannot synthesise controller
-    # input by itself. extest preloads a shim that converts the X11 events Steam
-    # sends into uinput events the kernel understands.
-    steam.extest.enable = true;
-
-    # Protontricks: tweak individual Proton prefixes (DLL overrides, fonts, ...)
-    # without hand-editing registry files.
-    steam.protontricks.enable = true;
   };
+
+  # ---------------------------------------------------------------------------
+  # Flatpak + Steam
+  #
+  # Steam comes from Flathub rather than nixpkgs. The Flatpak build ships its own
+  # runtime (freedesktop 26.08 + Mesa 26.2.5, including the 32-bit GL extension),
+  # so it does not depend on the host's Mesa version and Proton games get a
+  # consistent library set.
+  #
+  # services.flatpak (nixpkgs module) provides the plumbing:
+  #   * the flatpak CLI, fuse3 and the flatpak system user
+  #   * services.dbus.packages -> registers org.freedesktop.Flatpak on the session
+  #     bus. Without it flatpak-spawn --sandbox fails, which is what made the
+  #     runtime's glycin image loaders die and took zenity (and Steam) down.
+  #   * environment.profiles -> ~/.local/share/flatpak/exports and
+  #     /var/lib/flatpak/exports land on XDG_DATA_DIRS, so the Steam entry shows
+  #     up in the launcher without a re-login.
+  #   * fonts.fontDir -> sandboxed apps can see the system fonts.
+  # ---------------------------------------------------------------------------
+  services.flatpak = {
+    enable = true;
+
+    # Apps are declared here instead of installed by hand (nix-flatpak module).
+    # A rebuild installs anything missing; it is convergent, not destructive.
+    packages = [ "com.valvesoftware.Steam" ];
+  };
+
+  # udev rules for gamepads, the Steam Controller and VR headsets. Valve's
+  # 60-steam-input.rules also tags /dev/uinput with "uaccess", which is what
+  # grants the logged-in user write access to it -- Steam needs that to create
+  # virtual controllers (Steam Input) and it silences the wrapper's warning.
+  hardware.steam-hardware.enable = true;
 
   # ---------------------------------------------------------------------------
   # System packages
