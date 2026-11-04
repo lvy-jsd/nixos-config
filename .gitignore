@@ -5,3 +5,10 @@ result-*
 # are just quick local rollback points and do not belong in the repo.
 niri/*.bak-*
 niri/*.bak
+
+# Local mihomo secrets (never commit; live under /var/lib/mihomo-secrets/)
+**/mihomo-secrets*/
+**/sydney-hy2.password
+**/controller.secret
+configuration.nix.bak-*
+*.bak-mihomo-*
