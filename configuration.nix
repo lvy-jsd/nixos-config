@@ -298,8 +298,9 @@ in
   #     bus. Without it flatpak-spawn --sandbox fails, which is what made the
   #     runtime's glycin image loaders die and took zenity (and Steam) down.
   #   * environment.profiles -> ~/.local/share/flatpak/exports and
-  #     /var/lib/flatpak/exports land on XDG_DATA_DIRS, so the Steam entry shows
-  #     up in the launcher without a re-login.
+  #     /var/lib/flatpak/exports land on XDG_DATA_DIRS. Those are session
+  #     variables, so a rebuild alone does not refresh them: log out and back in
+  #     (or reboot) before the Steam entry shows up in the launcher.
   #   * fonts.fontDir -> sandboxed apps can see the system fonts.
   # ---------------------------------------------------------------------------
   services.flatpak = {
@@ -308,6 +309,15 @@ in
     # Apps are declared here instead of installed by hand (nix-flatpak module).
     # A rebuild installs anything missing; it is convergent, not destructive.
     packages = [ "com.valvesoftware.Steam" ];
+
+    # The Flathub manifest only grants devices=dri;kvm;shm, which leaves the
+    # sandbox with no /dev/input at all. Steam reads /dev/input/event* to see
+    # gamepads and writes /dev/uinput for the virtual controllers Steam Input
+    # emulates, so widen it to "all". Keyboard and mouse keep working through
+    # the Wayland socket either way -- this is only about raw HID devices.
+    overrides = {
+      "com.valvesoftware.Steam".Context.devices = [ "all" ];
+    };
   };
 
   # udev rules for gamepads, the Steam Controller and VR headsets. Valve's
