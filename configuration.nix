@@ -282,6 +282,25 @@ in
     };
     starship.enable = true; # prompt config: ~/.config/starship.toml
     fish.enable = true; # only used by kitty (kitty.conf `shell`); the login shell stays bash
+
+    # Steam (native nixpkgs build, not Flatpak).
+    #
+    # Turning this on pulls in everything Steam needs on NixOS:
+    #   * hardware.graphics.enable32Bit -- 32-bit GL/Vulkan drivers for Proton
+    #   * hardware.steam-hardware       -- udev rules so gamepads and the Steam
+    #                                     Controller show up without manual chmod
+    #   * 32-bit PipeWire/PulseAudio    -- audio inside games
+    # The desktop entry lands in environment.systemPackages automatically.
+    steam.enable = true;
+
+    # niri runs under Wayland, where Steam Input cannot synthesise controller
+    # input by itself. extest preloads a shim that converts the X11 events Steam
+    # sends into uinput events the kernel understands.
+    steam.extest.enable = true;
+
+    # Protontricks: tweak individual Proton prefixes (DLL overrides, fonts, ...)
+    # without hand-editing registry files.
+    steam.protontricks.enable = true;
   };
 
   # ---------------------------------------------------------------------------
