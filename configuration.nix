@@ -107,6 +107,36 @@ in
   };
 
   # ---------------------------------------------------------------------------
+  # niri config
+  #
+  # The real file lives in this repo as niri/config.kdl; ~/.config/niri/config.kdl
+  # is a symlink to it. Deliberately NOT home-manager / xdg.configFile, because
+  # that would make the file a read-only /nix/store symlink -- niri tweaks would
+  # then need a commit + nixos-rebuild every time. This way the file stays
+  # writable (niri reloads on save) while still being versioned by git.
+  #
+  # This activation script recreates the symlink on a fresh clone or if it gets
+  # lost. An existing regular file is never overwritten.
+  # ---------------------------------------------------------------------------
+  system.activationScripts.niriConfig = {
+    deps = [ "users" ];
+    text = ''
+      cfgDir=/home/${user}/.config/niri
+      src=${flakeDir}/niri/config.kdl
+      link=$cfgDir/config.kdl
+
+      install -d -o ${user} -g users -m 755 "$cfgDir"
+
+      if [ -L "$link" ] || [ ! -e "$link" ]; then
+        ln -sfn "$src" "$link"
+        chown -h ${user}:users "$link" 2>/dev/null || true
+      else
+        echo "niriConfig: $link is a regular file, leaving it untouched" >&2
+      fi
+    '';
+  };
+
+  # ---------------------------------------------------------------------------
   # Nix itself: flakes, garbage collection and weekly automatic upgrades
   # ---------------------------------------------------------------------------
   nixpkgs.config.allowUnfree = true; # Chrome, WeChat, QQ
