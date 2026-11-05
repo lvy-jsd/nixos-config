@@ -71,15 +71,49 @@ token 在 `clash/.pub-token`（已被 gitignore），路由器上在 `/etc/clash
 
 ## 路由器与推理机的分工
 
-- **路由器**（24h 常开、在流量必经路径上）：mihomo 分流 + tproxy 全屋透明代理 + DNS 入口(1053) + 配置发布端
-- **推理机**（算力强）：AdGuardHome 做过滤/缓存，服务 Tailscale 侧与（待接）全屋
+- **路由器**（24h 常开、在流量必经路径上）：mihomo 分流 + tproxy 全屋透明代理 + 配置发布端
+- **推理机**：AdGuardHome 做广告/追踪过滤与缓存（规则表大、查询日志重，适合放算力机）
 
-当前全屋链路还是 `dnsmasq → 路由器 mihomo:1053`，AdGuard **没有**在全屋链路上，
-只被 Tailscale MagicDNS 用。要真正互补，需要把链路改成：
+全屋 DNS 链路（2026-11-05 接通）：
 
 ```
-dnsmasq → 推理机 AdGuard(192.168.6.118:53) 过滤+缓存 → 路由器 mihomo:1053 分流
+设备 → 路由器 dnsmasq(192.168.6.1:53)
+     → 推理机 AdGuard(192.168.6.118:53)   广告/追踪过滤 + 缓存
+     → 路由器 mihomo(192.168.6.1:1053)    国内外分流 + DoH 上游
 ```
 
-同时把 AdGuard 的主上游从 `223.5.5.5` 改成 `192.168.6.1:1053`，否则国外域名会拿到
-未经分流的解析结果。这一步要动推理机，等它空闲时再做。
+AdGuard 的上游必须指向 `192.168.6.1:1053` 而不是直连 `223.5.5.5`，否则国外域名拿到的是
+未经分流的解析结果。fallback 保留 `223.5.5.5 / 119.29.29.29`，路由器 DNS 出问题时仍能解析国内域名。
+
+**已知取舍**：路由器 dnsmasq 现在是单上游。推理机一挂，全屋 DNS 就断（回滚见下）。
+dnsmasq 的 `local-service` 默认开启，所以经 Tailscale 来的查询会被拒——这是既存行为，
+笔记本走自己的 Verge DNS 不受影响。
+
+### 推理机侧的临时状态
+
+推理机的 `/etc/nixos/adguard.nix` 已改成新上游，但 `nixos-rebuild` 被 sops-nix 的
+age 私钥缺失挡住了（那是另一个会话未完成的改动）。所以当前用一个 `/run` 下的
+systemd drop-in 停掉了会用 nix store 配置覆盖运行时 yaml 的 `ExecStartPre`：
+
+```
+/run/systemd/system/adguardhome.service.d/10-runtime-config.conf   # ExecStartPre=
+```
+
+它是临时的：**机器重启后消失**，届时会退回旧的 `223.5.5.5` 上游。
+等 sops 密钥就位、`nixos-rebuild switch` 把 adguard.nix 的新值固化后，就再也不需要它。
+
+### 回滚
+
+```sh
+# 全屋 DNS 回退到路由器 mihomo（秒级）
+ssh root@192.168.6.1 "uci -q delete dhcp.@dnsmasq[0].server; \
+  uci add_list dhcp.@dnsmasq[0].server='127.0.0.1#1053'; \
+  uci commit dhcp; /etc/init.d/dnsmasq restart"
+
+# 推理机 AdGuard 恢复默认上游
+ssh root@100.108.37.113 "cp /root/AdGuardHome.yaml.bak-aghchain-* /var/lib/private/AdGuardHome/AdGuardHome.yaml && \
+  chown 65534:65534 /var/lib/private/AdGuardHome/AdGuardHome.yaml && systemctl restart adguardhome"
+```
+
+注意两个坑：`uci set` 会把 `server` 写成标量导致生成器不出 `server=` 行（必须 `add_list`）；
+AdGuard 以 DynamicUser 运行，手改 yaml 后属主必须是 `65534:65534` + `600`，否则启动即 `permission denied`。
