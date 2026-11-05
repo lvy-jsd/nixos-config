@@ -265,6 +265,14 @@ in
     power-profiles-daemon.enable = true; # performance / balanced / power-saver
     gvfs.enable = true; # trash, network mounts in Nautilus
     udisks2.enable = true; # mount USB drives without root
+
+    # Remote access to the home LAN from anywhere. inference-box
+    # (192.168.6.118) already advertises 192.168.6.0/24 in the same tailnet,
+    # so joining is all this laptop needs: no port forwarding, no DDNS, no
+    # VPN server -- the WAN here is behind two layers of NAT and has no
+    # public IPv4 or IPv6 at all, which rules those out entirely.
+    # Approve the subnet route once at login.tailscale.com/admin/machines.
+    tailscale.enable = true;
   };
 
   # ---------------------------------------------------------------------------
