@@ -638,6 +638,8 @@ binds {
 }
 spawn-at-startup "noctalia"
 spawn-at-startup "fcitx5" "-d"
+spawn-at-startup "clash-verge"
+spawn-at-startup "clash-verge"
 
 // kitty: rounded corners and a blurred see-through background
 window-rule {
