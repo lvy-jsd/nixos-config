@@ -1,0 +1,25 @@
+# overlays/phone.yaml —— 手机 OnePlus 12（box for root / mihomo 内核）
+#
+# box 的 tproxy 模式自己接管 wlan/rndis 流量，不需要 tun 段。
+
+mixed-port: 7890
+
+# 为什么是 allow-lan: true 而不是 false：
+#   droidspaces 容器（nixos-phone）是 nat 网络，靠 host 的 172.28.0.1:7890 出网，
+#   关掉 allow-lan 容器就断网。
+# 为什么绑 '*' 而不是绑 172.28.0.1：
+#   mihomo 不支持多地址 bind，且容器网桥 ds-br0 消失时绑死该地址会导致内核起不来。
+#   （实测 bind-address '127.0.0.1,172.28.0.1' 报 invalid network address）
+# 真正的收紧靠 lan-allowed-ips：只有本机与容器网段能连，Wi-Fi 上的其它设备被拒。
+allow-lan: true
+bind-address: '*'
+lan-allowed-ips:
+  - 127.0.0.0/8
+  - 172.28.0.0/16
+
+# box 的 Web UI / 切换节点走这个 API，只绑回环
+external-controller: 127.0.0.1:9090
+secret: __CLASH_SECRET__
+
+dns:
+  listen: '127.0.0.1:1053'

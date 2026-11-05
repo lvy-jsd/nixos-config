@@ -1,0 +1,53 @@
+#!/bin/sh
+# /www/cgi-bin/clash-pub —— 三端配置发布端点（跑在路由器上）
+#
+#   GET /cgi-bin/clash-pub?p=<router|laptop|phone>&t=<token>
+#
+# 只认内网 / tailscale 来源 + token，两个都对才吐文件。
+# 渲染与分发由笔记本上的 clash/deploy.sh 负责，这里只做「取」。
+
+set -eu
+
+CONF=/etc/clash/pub.conf
+PUBDIR=/etc/clash/pub
+
+fail() {
+	printf 'Content-Type: text/plain\r\n\r\n%s\n' "$1"
+	exit 0
+}
+
+[ -r "$CONF" ] || fail "not configured"
+. "$CONF"                       # TOKEN=...
+
+# 来源限制：局域网 + tailscale（CGNAT 段）
+case "${REMOTE_ADDR:-}" in
+	192.168.*|10.*|172.1[6-9].*|172.2[0-9].*|172.3[01].*|100.6[4-9].*|100.[7-9][0-9].*|127.*) ;;
+	*) fail "forbidden" ;;
+esac
+
+p=""
+t=""
+IFS='&'
+for kv in ${QUERY_STRING:-}; do
+	case $kv in
+		p=*) p=${kv#p=} ;;
+		t=*) t=${kv#t=} ;;
+	esac
+done
+IFS=' '
+
+case $p in
+	router|laptop|phone) ;;
+	*) fail "bad profile" ;;
+esac
+
+[ "$t" = "$TOKEN" ] || fail "bad token"
+
+f="$PUBDIR/$p.yaml"
+[ -r "$f" ] || fail "not found"
+
+printf 'Content-Type: application/yaml\r\n'
+printf 'Cache-Control: no-store\r\n'
+printf 'Content-Length: %s\r\n' "$(wc -c < "$f")"
+printf '\r\n'
+cat "$f"

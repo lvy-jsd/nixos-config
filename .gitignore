@@ -12,3 +12,11 @@ niri/*.bak
 **/controller.secret
 configuration.nix.bak-*
 *.bak-mihomo-*
+
+# clash/: 三端配置的渲染产物、发布 token、以及含节点密钥的 base 配置
+# base.yaml 里有 vless UUID / hysteria2 密码，仓库是 public，绝不能提交。
+clash/dist/
+clash/.pub-token
+clash/base.yaml
+clash/*.bak-*
+clash/.secret

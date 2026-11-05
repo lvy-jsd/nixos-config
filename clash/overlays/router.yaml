@@ -1,0 +1,21 @@
+# overlays/router.yaml —— 路由器 TL-XDR6088（ImmortalWrt）全屋透明网关
+#
+# 这里只放「路由器与其它两端不同」的键，其余全部继承 ../base.yaml。
+# 改完跑 ../gen.sh 渲染，../deploy.sh 分发。
+
+# 局域网透明代理入口
+mixed-port: 7890
+tproxy-port: 9898
+redir-port: 9797
+routing-mark: 255          # fw4 侧按 0xff mark 做回程放行，必须与 tproxy.nft 一致
+allow-lan: true
+bind-address: '*'
+
+# Web 面板（仅本机回环，外部经 ssh -L 或 tailscale 访问）
+external-controller: 127.0.0.1:9090
+secret: __CLASH_SECRET__
+external-ui: ./dashboard
+
+# 作为全屋 DNS 入口，监听所有网卡的 1053（dnsmasq 上游）
+dns:
+  listen: '0.0.0.0:1053'

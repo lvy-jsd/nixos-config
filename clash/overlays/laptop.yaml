@@ -1,0 +1,11 @@
+# overlays/laptop.yaml —— 笔记本 nixos-1（Clash Verge Rev + TUN）
+#
+# Verge 会用自己的 verge.yaml 覆盖 mixed-port / external-controller / secret，
+# 这里写出来只为「产物即真相」——脱离 Verge 直接用内核跑也能工作。
+
+mixed-port: 7897
+allow-lan: false          # TUN 模式下没必要对局域网开放
+
+# 只给本机 resolver 用，不对外
+dns:
+  listen: '127.0.0.1:1053'
