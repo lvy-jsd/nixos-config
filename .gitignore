@@ -20,3 +20,4 @@ clash/.pub-token
 clash/base.yaml
 clash/*.bak-*
 clash/.secret
+clash/.subscription
